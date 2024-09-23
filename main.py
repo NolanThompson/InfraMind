@@ -1,26 +1,24 @@
-from terraform_ai_tool.user_input import get_user_input
-from terraform_ai_tool.nlp_module import convert_instruction_to_terraform
-from terraform_ai_tool.change_summary import summarize_changes
-from terraform_ai_tool.confirmation import get_user_confirmation
-from terraform_ai_tool.terraform_execute import apply_terraform_changes
+from modules.nlp_module import identify_missing_params, prompt_for_missing_params, generate_terraform_code_with_inputs
 
 def main():
-    # Step 1: Get user input
-    instruction = get_user_input()
-
-    # Step 2: Convert instruction to Terraform code
-    terraform_code = convert_instruction_to_terraform(instruction)
-
-    # Step 3: Summarize the changes for the user
-    summary = summarize_changes(terraform_code)
-    print(summary)
-
-    # Step 4: Get user confirmation
-    if get_user_confirmation():
-        print("Applying changes...")
-        apply_terraform_changes(terraform_code)
+    # Get the user's initial Terraform request
+    terraform_request = input("Please describe the infrastructure changes you want to make: ")
+    
+    # Step 1: Identify missing parameters
+    missing_params = identify_missing_params(terraform_request)
+    
+    # Step 2: Prompt the user for any missing parameters
+    if missing_params:
+        user_inputs = prompt_for_missing_params(missing_params)
     else:
-        print("Changes aborted. You can modify your instructions and try again.")
+        user_inputs = {}
+    
+    # Step 3: Generate Terraform code with the provided inputs
+    terraform_code = generate_terraform_code_with_inputs(terraform_request, user_inputs)
+    
+    # Output the generated Terraform code
+    print("\nGenerated Terraform Code:\n")
+    print(terraform_code)
 
 if __name__ == "__main__":
     main()
